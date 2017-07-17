@@ -18,13 +18,17 @@ class MingwinstallerConan(ConanFile):
     build_requires = "7z-installer/16.02@anton-matosov/testing"
     
     def configure(self):
-        if (self.settings.os == "Arduino" and not os_info.is_windows):
-            raise Exception("MinGW toolchain for Arduino can be used only on Windows directly")
+        if (not os_info.is_windows):
+            raise Exception("MinGW toolchain can be used only on Windows directly")
 
         if (self.options.arch == "x86" and self.options.exception == "seh") or \
            (self.options.arch == "x86_64" and self.options.exception == "dwarf2"):
             raise Exception("Not valid %s and %s combination!" % (self.options.arch, 
                                                                   self.options.exception))
+
+    def package_id(self):
+        # Toolchain doesn't really depend on OS settings, so package id should be platform agnostic
+        self.info.settings.os = ""
 
     def build(self):
         keychain = "%s_%s_%s_%s" % (str(self.options.version).replace(".", ""), 
