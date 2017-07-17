@@ -3,7 +3,7 @@ from conans.tools import os_info
 import os, sys
 
 class MingwinstallerConan(ConanFile):
-    name = "conan-mingw-installer"
+    name = "mingw-installer"
     version = "0.1"
     license = "MIT"
     url = "https://github.com/Dr-QP/conan-mingw-installer"
@@ -15,10 +15,9 @@ class MingwinstallerConan(ConanFile):
                "version": ["4.8", "4.9", "5.4", "6.2"]}
     default_options = "exception=seh", "threads=posix", "arch=x86_64", "version=6.2"
     build_policy = "missing"
-
+    build_requires = "7z-installer/16.02@anton-matosov/testing"
+    
     def configure(self):
-        self.requires.add("7z_installer/0.1@lasote/testing", private=True)
-
         if (self.settings.os == "Arduino" and not os_info.is_windows):
             raise Exception("MinGW toolchain for Arduino can be used only on Windows directly")
 
@@ -69,6 +68,8 @@ class MingwinstallerConan(ConanFile):
                  "54_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.4.0/threads-posix/seh/x86_64-5.4.0-release-posix-seh-rt_v5-rev0.7z",
                  "54_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.4.0/threads-posix/sjlj/x86_64-5.4.0-release-posix-sjlj-rt_v5-rev0.7z",}
 
+    # https://newcontinuum.dl.sourceforge.net/project/mingw/MinGW/Extension/make/make-3.82.90-cvs/make-3.82.90-2-mingw32-cvs-20120902-bin.tar.lzma
+
         tools.download(files[keychain], "file.7z")
         self.run("7z x file.7z")
     
@@ -78,6 +79,8 @@ class MingwinstallerConan(ConanFile):
 
     def package_info(self):
         self.env_info.path.append(os.path.join(self.package_folder, "bin"))
+        self.env_info.MINGW_HOME = str(self.package_folder)
+        self.env_info.MINGW_MAKE = os.path.join(self.package_folder, "bin", "mingw32-make.exe")
         self.env_info.CXX = os.path.join(self.package_folder, "bin", "g++.exe")
         self.env_info.CC = os.path.join(self.package_folder, "bin", "gcc.exe")
 
