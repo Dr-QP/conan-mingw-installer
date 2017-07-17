@@ -1,23 +1,42 @@
 from conans import ConanFile, CMake, tools
-import os
-
+from conans.tools import os_info
+import os, sys
 
 class MingwinstallerConan(ConanFile):
     name = "mingw_installer"
     version = "0.1"
     license = "MIT"
-    url = "http://github.com/lasote/conan-mingw-installer"
+    url = "https://github.com/Dr-QP/conan-mingw-installer"
     settings = {"os": ["Windows"]}
     options = {"threads": ["posix", "win32"],
                "exception": ["dwarf2", "sjlj", "seh"], 
                "arch": ["x86", "x86_64"],
                "version": ["4.8", "4.9", "5.4", "6.2"]}
-    default_options = "exception=sjlj", "threads=posix", "arch=x86_64", "version=4.9"
+    default_options = "version=6.2"
     build_policy = "missing"
-
 
     def configure(self):
         self.requires.add("7z_installer/0.1@lasote/testing", private=True)
+
+        is_64bits = sys.maxsize > 2 ** 32
+        if self.options.arch == None:
+            if is_64bits:
+                self.options.arch = "x86_64"
+            else:
+                self.options.arch = "x86"
+
+        if self.options.threads == None:
+            if os_info.is_windows:
+                self.options.threads = "win32"
+            else:
+                self.options.threads = "posix"
+
+        if self.options.exception == None:
+            if os_info.is_windows:
+                self.options.exception = "seh"
+            else:
+                self.options.exception = "sjlj"
+
         if (self.options.arch == "x86" and self.options.exception == "seh") or \
            (self.options.arch == "x86_64" and self.options.exception == "dwarf2"):
             raise Exception("Not valid %s and %s combination!" % (self.options.arch, 
