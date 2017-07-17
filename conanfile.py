@@ -13,30 +13,11 @@ class MingwinstallerConan(ConanFile):
                "exception": ["dwarf2", "sjlj", "seh"], 
                "arch": ["x86", "x86_64"],
                "version": ["4.8", "4.9", "5.4", "6.2"]}
-    default_options = "version=6.2"
+    default_options = "exception=seh", "threads=posix", "arch=x86_64", "version=6.2"
     build_policy = "missing"
 
     def configure(self):
         self.requires.add("7z_installer/0.1@lasote/testing", private=True)
-
-        is_64bits = sys.maxsize > 2 ** 32
-        if self.options.arch == None:
-            if is_64bits:
-                self.options.arch = "x86_64"
-            else:
-                self.options.arch = "x86"
-
-        if self.options.threads == None:
-            if os_info.is_windows:
-                self.options.threads = "win32"
-            else:
-                self.options.threads = "posix"
-
-        if self.options.exception == None:
-            if os_info.is_windows:
-                self.options.exception = "seh"
-            else:
-                self.options.exception = "sjlj"
 
         if (self.settings.os == "Arduino" and not os_info.is_windows):
             raise Exception("MinGW toolchain for Arduino can be used only on Windows directly")
@@ -44,7 +25,8 @@ class MingwinstallerConan(ConanFile):
         if (self.options.arch == "x86" and self.options.exception == "seh") or \
            (self.options.arch == "x86_64" and self.options.exception == "dwarf2"):
             raise Exception("Not valid %s and %s combination!" % (self.options.arch, 
-                                                                  self.options.exception))       
+                                                                  self.options.exception))
+
     def build(self):
         keychain = "%s_%s_%s_%s" % (str(self.options.version).replace(".", ""), 
                                     self.options.arch,
