@@ -8,7 +8,7 @@ class MingwinstallerConan(ConanFile):
     license = "MIT"
     url = "https://github.com/Dr-QP/conan-mingw-installer"
     description = "MinGW installer as a conan package"
-    settings = None
+    settings = {"os": ["Windows", "Arduino"]}
     options = {"threads": ["posix", "win32"],
                "exception": ["dwarf2", "sjlj", "seh"], 
                "arch": ["x86", "x86_64"],
@@ -37,6 +37,9 @@ class MingwinstallerConan(ConanFile):
                 self.options.exception = "seh"
             else:
                 self.options.exception = "sjlj"
+
+        if (self.settings.os == "Arduino" and not os_info.is_windows):
+            raise Exception("MinGW toolchain for Arduino can be used only on Windows directly")
 
         if (self.options.arch == "x86" and self.options.exception == "seh") or \
            (self.options.arch == "x86_64" and self.options.exception == "dwarf2"):
