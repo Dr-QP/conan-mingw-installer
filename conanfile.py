@@ -8,7 +8,7 @@ class MingwinstallerConan(ConanFile):
     license = "MIT"
     url = "https://github.com/Dr-QP/conan-mingw-installer"
     description = "MinGW installer as a conan package"
-    settings = {"os": ["Windows"]}
+    settings = None
     options = {"threads": ["posix", "win32"],
                "exception": ["dwarf2", "sjlj", "seh"], 
                "arch": ["x86", "x86_64"],
