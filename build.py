@@ -34,9 +34,10 @@ if __name__ == "__main__":
                     new_build_options.append(new_options)
         build_options = new_build_options
 
-    print"Options list:"
     for p in build_options:
-        print p
-    # builder.add({})
+        opts = {}
+        for name, value in p.iteritems():
+            opts["mingw-installer:" + name] = value
+        builder.add(opts)
 
-    # builder.run()
+    builder.run()
