@@ -12,14 +12,6 @@ environment:
     CONAN_CHANNEL: "testing"
     CONAN_STABLE_BRANCH_PATTERN: "release/*"
     VS150COMNTOOLS: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\"
-    CONAN_TOTAL_PAGES: 5
-    
-    matrix:
-        - CONAN_CURRENT_PAGE: 1
-        - CONAN_CURRENT_PAGE: 2
-        - CONAN_CURRENT_PAGE: 3
-        - CONAN_CURRENT_PAGE: 4
-        - CONAN_CURRENT_PAGE: 5
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
