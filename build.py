@@ -10,6 +10,11 @@ class WindowsPackager(ConanMultiPackager):
             "os": "Windows",
         }, options=options)
 
+    def mingw_options(self, options):
+        result = {}
+        for name, value in options.iteritems():
+            result["mingw-installer:" + name] = value
+        return result
 
 def is_bad_options(options):
     return (options.get("arch") == "x86" and options.get("exception") == "seh") or \
@@ -20,13 +25,13 @@ if __name__ == "__main__":
     # self.password = password or os.getenv("CONAN_PASSWORD", None)
     builder = WindowsPackager(args="--build missing")
 
-    # default_options 
-    builder.add(options={
+    default_options = {
         "exception": "seh",
         "threads": "posix",
         "arch": "x86_64",
         "version": "6.2"
-    })
+    }
+    builder.add(builder.mingw_options(default_options))
 
     # Upload before build to no include gigantic binaries (160MB per package)
     builder.run()
@@ -49,9 +54,6 @@ if __name__ == "__main__":
         build_options = new_build_options
 
     for p in build_options:
-        opts = {}
-        for name, value in p.iteritems():
-            opts["mingw-installer:" + name] = value
-        builder.add(opts)
+        builder.add(builder.mingw_options(p))
 
     builder.run()
