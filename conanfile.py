@@ -88,9 +88,9 @@ class MingwinstallerConan(ConanFile):
         self.copy("*", dst="", src="mingw64")
 
     def package_info(self):
-        self.env_info.path.append(os.path.join(self.package_folder, "bin"))
+        self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
         self.env_info.MINGW_HOME = str(self.package_folder)
-        self.env_info.MINGW_MAKE = os.path.join(self.package_folder, "bin", "mingw32-make.exe")
+        self.env_info.MINGW_MAKE = "mingw32-make.exe"
         self.env_info.CXX = os.path.join(self.package_folder, "bin", "g++.exe")
         self.env_info.CC = os.path.join(self.package_folder, "bin", "gcc.exe")
 
