@@ -17,7 +17,13 @@ def is_bad_options(options):
 
 
 if __name__ == "__main__":
+    # self.password = password or os.getenv("CONAN_PASSWORD", None)
     builder = WindowsPackager(args="--build missing")
+
+    # Upload before build to no include gigantic binaries (160MB per package)
+    builder.upload_packages()
+    builder.password = None # Clear password to prevent binaries upload
+
     possible_options = {"threads": ["posix", "win32"],
                         "exception": ["dwarf2", "sjlj", "seh"],
                         "arch": ["x86", "x86_64"],
