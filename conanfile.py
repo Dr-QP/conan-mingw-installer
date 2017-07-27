@@ -2,7 +2,7 @@ from conans import ConanFile, tools
 from conans.tools import os_info
 import os, sys
 
-class MingwinstallerConan(ConanFile):
+class MinGWInstallerConan(ConanFile):
     name = "mingw-installer"
     version = "0.1"
     license = "MIT"
