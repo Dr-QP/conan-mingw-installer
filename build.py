@@ -18,8 +18,8 @@ class WindowsPackager(ConanMultiPackager):
         return result
 
     def is_bad_options(self, options):
-        return (options.get("arch") == "x86" and options.get("exception") == "seh") or \
-            (options.get("arch") == "x86_64" and options.get("exception") == "dwarf2")
+        return (options.get("mingw-installer:arch") == "x86" and options.get("mingw-installer:exception") == "seh") or \
+            (options.get("mingw-installer:arch") == "x86_64" and options.get("mingw-installer:exception") == "dwarf2")
 
 
 if __name__ == "__main__":
