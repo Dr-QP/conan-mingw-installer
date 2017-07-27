@@ -9,7 +9,7 @@ class WindowsPackager(ConanMultiPackager):
         if not self.is_bad_options(options):
             super(self.__class__, self).add(settings={
                 "os": "Windows",
-            }, options=options)
+            }, options=self.mingw_options(options))
 
     def mingw_options(self, options):
         result = {}
@@ -18,8 +18,8 @@ class WindowsPackager(ConanMultiPackager):
         return result
 
     def is_bad_options(self, options):
-        return (options.get("mingw-installer:arch") == "x86" and options.get("mingw-installer:exception") == "seh") or \
-            (options.get("mingw-installer:arch") == "x86_64" and options.get("mingw-installer:exception") == "dwarf2")
+        return (options.get("arch") == "x86" and options.get("exception") == "seh") or \
+            (options.get("arch") == "x86_64" and options.get("exception") == "dwarf2")
 
 
 if __name__ == "__main__":
@@ -54,6 +54,6 @@ if __name__ == "__main__":
         build_options = new_build_options
 
     for p in build_options:
-        builder.add(builder.mingw_options(p))
+        builder.add(p)
 
     builder.run()
