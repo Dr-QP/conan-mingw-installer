@@ -6,9 +6,10 @@ import copy
 class WindowsPackager(ConanMultiPackager):
 
     def add(self, options):
-        super(self.__class__, self).add(settings={
-            "os": "Windows",
-        }, options=options)
+        if not self.is_bad_options(options):
+            super(self.__class__, self).add(settings={
+                "os": "Windows",
+            }, options=options)
 
     def mingw_options(self, options):
         result = {}
@@ -16,9 +17,9 @@ class WindowsPackager(ConanMultiPackager):
             result["mingw-installer:" + name] = value
         return result
 
-def is_bad_options(options):
-    return (options.get("arch") == "x86" and options.get("exception") == "seh") or \
-        (options.get("arch") == "x86_64" and options.get("exception") == "dwarf2")
+    def is_bad_options(self, options):
+        return (options.get("arch") == "x86" and options.get("exception") == "seh") or \
+            (options.get("arch") == "x86_64" and options.get("exception") == "dwarf2")
 
 
 if __name__ == "__main__":
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     }
     builder.add(builder.mingw_options(default_options))
 
-    # Upload before build to no include gigantic binaries (160MB per package)
+    # Build only default, because packages are pretty big (160MB per package)
     builder.run()
     builder.password = None # Clear password to prevent binaries upload
 
@@ -49,8 +50,7 @@ if __name__ == "__main__":
             for options in build_options:
                 new_options = copy.copy(options)
                 new_options[name] = value
-                if not is_bad_options(new_options):
-                    new_build_options.append(new_options)
+                new_build_options.append(new_options)
         build_options = new_build_options
 
     for p in build_options:
