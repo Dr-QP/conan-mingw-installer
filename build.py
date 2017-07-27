@@ -30,7 +30,7 @@ if __name__ == "__main__":
         "exception": "seh",
         "threads": "posix",
         "arch": "x86_64",
-        "version": "6.2"
+        "version": "6.3"
     }
     builder.add(builder.mingw_options(default_options))
 
