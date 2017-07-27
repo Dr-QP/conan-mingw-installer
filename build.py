@@ -32,7 +32,7 @@ if __name__ == "__main__":
         "arch": "x86_64",
         "version": "6.3"
     }
-    builder.add(builder.mingw_options(default_options))
+    builder.add(default_options)
 
     # Build only default, because packages are pretty big (160MB per package)
     builder.run()
