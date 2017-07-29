@@ -1,7 +1,7 @@
 from conan.packager import ConanMultiPackager
 from conans.tools import os_info
 import copy
-
+import os
 
 class WindowsPackager(ConanMultiPackager):
 
@@ -29,9 +29,8 @@ class WindowsPackager(ConanMultiPackager):
             (options.get("arch") == "x86_64" and options.get("exception") == "dwarf2")
 
 
-if __name__ == "__main__":
-    # self.password = password or os.getenv("CONAN_PASSWORD", None)
-    builder = WindowsPackager(args="--build missing")
+def build_default_version():
+    defaultBuilder = WindowsPackager(args="--build missing")
 
     default_options = {
         "exception": "seh",
@@ -39,11 +38,19 @@ if __name__ == "__main__":
         "arch": "x86_64",
         "version": "6.3"
     }
-    builder.add(default_options)
+    defaultBuilder.add(default_options)
 
-    # Build only default, because packages are pretty big (160MB per package)
-    builder.run()
-    builder.password = None # Clear password to prevent binaries upload
+    # Build and upload only default, because packages are pretty big (160MB per package)
+    defaultBuilder.run()
+
+
+if __name__ == "__main__":
+    current_page = os.getenv("CONAN_CURRENT_PAGE", None)
+    if not current_page or current_page == "1":
+        build_default_version()
+
+    builder = WindowsPackager(args="--build missing")
+    builder.password = None  # Clear password to prevent binaries upload
 
     possible_options = {"threads": ["posix", "win32"],
                         "exception": ["dwarf2", "sjlj", "seh"],
