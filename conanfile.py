@@ -6,7 +6,7 @@ import sys
 
 class MinGWInstallerConan(ConanFile):
     name = "mingw-installer"
-    version = "0.1"
+    version = "1.0.0"
     license = "MIT"
     url = "https://github.com/Dr-QP/conan-mingw-installer"
     description = "MinGW installer as a conan package"

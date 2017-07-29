@@ -7,8 +7,8 @@ environment:
 
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     CONAN_VISUAL_VERSIONS: 14
-    CONAN_REFERENCE: "mingw-installer/0.1"
-    CONAN_USERNAME: "anton-matosov"
+    CONAN_REFERENCE: "mingw-installer/1.0.0"
+    CONAN_USERNAME: "conan"
     CONAN_CHANNEL: "testing"
     CONAN_STABLE_BRANCH_PATTERN: "release/*"
     VS150COMNTOOLS: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\"
