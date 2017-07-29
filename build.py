@@ -12,8 +12,9 @@ class WindowsPackager(ConanMultiPackager):
                 "arch":  options['arch'],
                 "compiler": "gcc",
                 "compiler.version": options['version'],
-                "threads": options['threads'],
-                "exception": options['exception'],
+                "compiler.libcxx": 'libstdc++',
+                "compiler.threads": options['threads'],
+                "compilerexception": options['exception'],
                 "build_type": "Release"
             }, options=self.mingw_options(options))
 
