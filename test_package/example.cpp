@@ -1,7 +1,5 @@
-#include <iostream>
-#include <X.h>
+
+#include <gnumake.h> // test if we can include one of MinGW bundled header 
 
 int main() {
-    XID xid = 0;
-    (void)xid;
 }
