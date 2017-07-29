@@ -9,6 +9,12 @@ class WindowsPackager(ConanMultiPackager):
         if not self.is_bad_options(options):
             super(self.__class__, self).add(settings={
                 "os": "Windows",
+                "arch":  options['arch'],
+                "compiler": "gcc",
+                "compiler.version": options['version'],
+                "threads": options['threads'],
+                "exception": options['exception'],
+                "build_type": "Release"
             }, options=self.mingw_options(options))
 
     def mingw_options(self, options):
