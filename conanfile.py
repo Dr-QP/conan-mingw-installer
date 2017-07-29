@@ -135,7 +135,3 @@ class MinGWInstallerConan(ConanFile):
         self.env_info.CONAN_CMAKE_GENERATOR = "MinGW Makefiles"
         self.env_info.CXX = os.path.join(self.package_folder, "bin", "g++.exe")
         self.env_info.CC = os.path.join(self.package_folder, "bin", "gcc.exe")
-
-        # self.cpp_info.bindirs = ['bin', 'opt/bin']  # Directories where executables and shared libs can be found
-        # self.cpp_info.includedirs = ['include', 'opt/include']  # Ordered list of include paths
-        # self.cpp_info.libdirs = ['lib', 'opt/lib']  # Directories where libraries can be found
