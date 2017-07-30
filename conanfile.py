@@ -17,7 +17,7 @@ class MinGWInstallerConan(ConanFile):
                "version": ["4.8", "4.9", "5.4", "6.2", "6.3", "7.1"]}
     default_options = "exception=seh", "threads=posix", "arch=x86_64", "version=6.3"
     build_policy = "missing"
-    build_requires = "7z-installer/16.02@anton-matosov/testing"
+    build_requires = "7z-installer/16.02@conan/testing"
 
     def configure(self):
         if (not os_info.is_windows):
