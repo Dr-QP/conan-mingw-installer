@@ -5,8 +5,6 @@ environment:
     PYTHON_VERSION: "2.7.8"
     PYTHON_ARCH: "32"
 
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    CONAN_VISUAL_VERSIONS: 14
     CONAN_REFERENCE: "mingw-installer/1.0.0"
     CONAN_USERNAME: "conan"
     CONAN_CHANNEL: "testing"
