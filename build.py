@@ -8,7 +8,7 @@ if __name__ == "__main__":
             "compiler.exception": "seh", "compiler.libcxx": "libstdc++",
             "compiler.threads": "posix"}
     versionsToUpload = ["4.9", "5.4", "6.3", "7.1"]
-    versionsToBuildOnly = ["4.8", "5.3"]
+    versionsToBuildOnly = ["4.8", "6.2"]
     for version in versionsToUpload + versionsToBuildOnly:
         tmp = copy.copy(base)
         tmp["compiler.version"] = version
