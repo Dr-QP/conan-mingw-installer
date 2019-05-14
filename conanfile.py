@@ -1,5 +1,10 @@
-from conans import ConanFile, tools
 import os
+
+from collections import namedtuple
+
+from conans import ConanFile, tools
+from conans.model.version import Version
+import shutil
 
 
 class MingwInstallerConan(ConanFile):
@@ -7,122 +12,144 @@ class MingwInstallerConan(ConanFile):
     version = "1.0"
     license = "http://www.mingw.org/license"
     url = "http://github.com/lasote/conan-mingw-installer"
+
     settings = {"os": ["Windows"],
-                "arch": ["x86", "x86_64"],
+                "arch" : ["x86", "x86_64"],
                 "compiler": {"gcc": {"version": None,
-                                     "libcxx": ["libstdc++"],
+                                     "libcxx": ["libstdc++", "libstdc++11"],
                                      "threads": ["posix", "win32"],
                                      "exception": ["dwarf2", "sjlj", "seh"]}}}
-    build_policy = "missing"
+
     description = 'MinGW, a contraction of "Minimalist GNU for Windows", ' \
                   'is a minimalist development environment for native Microsoft' \
                   ' Windows applications.'
     build_requires = "7z_installer/1.0@conan/stable"
-    
-    def configure(self):
-        if (self.settings.arch == "x86" and self.settings.compiler.exception == "seh") or \
-           (self.settings.arch == "x86_64" and self.settings.compiler.exception == "dwarf2"):
-            raise Exception("Not valid %s and %s combination!" % (self.settings.arch, 
-                                                                  self.settings.compiler.exception))       
+    build_policy = "missing"
 
     def build(self):
-        keychain = "%s_%s_%s_%s" % (str(self.settings.compiler.version).replace(".", ""), 
-                                    self.settings.arch,
-                                    self.settings.compiler.exception,
-                                    self.settings.compiler.threads)
-        
-        files = {
-            ############################################################################################################
-            ###  4.8
-            ############################################################################################################
-            "48_x86_dwarf2_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/dwarf/i686-4.8.2-release-posix-dwarf-rt_v3-rev0.7z",
-            "48_x86_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/sjlj/i686-4.8.2-release-posix-sjlj-rt_v3-rev0.7z",
-            "48_x86_dwarf2_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-win32/dwarf/i686-4.8.2-release-win32-dwarf-rt_v3-rev0.7z",
-            "48_x86_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-win32/sjlj/i686-4.8.2-release-win32-sjlj-rt_v3-rev0.7z",
+        self.output.info("Updating MinGW List ... please wait.")
 
-            "48_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.8.2/threads-posix/seh/x86_64-4.8.2-release-posix-seh-rt_v3-rev0.7z",
-            "48_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.8.2/threads-posix/sjlj/x86_64-4.8.2-release-posix-sjlj-rt_v3-rev0.7z",
-            "48_x86_64_seh_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.8.2/threads-win32/seh/x86_64-4.8.2-release-win32-seh-rt_v3-rev0.7z",
-            "48_x86_64_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.8.2/threads-win32/sjlj/x86_64-4.8.2-release-win32-sjlj-rt_v3-rev0.7z",
+        installer = get_best_installer(str(self.settings.arch),
+                                       str(self.settings.compiler.threads),
+                                       str(self.settings.compiler.exception),
+                                       str(self.settings.compiler.version))
 
-            ############################################################################################################
-            # 4.9
-            ############################################################################################################
-            "49_x86_dwarf2_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.2/threads-posix/dwarf/i686-4.9.2-release-posix-dwarf-rt_v3-rev1.7z",
-            "49_x86_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.2/threads-posix/sjlj/i686-4.9.2-release-posix-sjlj-rt_v3-rev1.7z",
-            "49_x86_dwarf2_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.2/threads-win32/dwarf/i686-4.9.2-release-win32-dwarf-rt_v3-rev1.7z",
-            "49_x86_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.2/threads-win32/sjlj/i686-4.9.2-release-win32-sjlj-rt_v3-rev1.7z",
-
-            "49_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-posix/seh/x86_64-4.9.2-release-posix-seh-rt_v3-rev1.7z",
-            "49_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-posix/sjlj/x86_64-4.9.2-release-posix-sjlj-rt_v3-rev1.7z",
-            "49_x86_64_seh_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-win32/seh/x86_64-4.9.2-release-win32-seh-rt_v3-rev1.7z",
-            "49_x86_64_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.9.2/threads-win32/sjlj/x86_64-4.9.2-release-win32-sjlj-rt_v3-rev1.7z",
-
-
-            ############################################################################################################
-            ###  5.4
-            ############################################################################################################
-            "54_x86_dwarf2_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/5.4.0/threads-posix/dwarf/i686-5.4.0-release-posix-dwarf-rt_v5-rev0.7z",
-            "54_x86_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/5.4.0/threads-posix/sjlj/i686-5.4.0-release-posix-sjlj-rt_v5-rev0.7z",
-            "54_x86_dwarf2_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/5.4.0/threads-win32/dwarf/i686-5.4.0-release-win32-dwarf-rt_v5-rev0.7z",
-            "54_x86_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/5.4.0/threads-win32/sjlj/i686-5.4.0-release-win32-sjlj-rt_v5-rev0.7z",
-
-            "54_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.4.0/threads-posix/seh/x86_64-5.4.0-release-posix-seh-rt_v5-rev0.7z",
-            "54_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.4.0/threads-posix/sjlj/x86_64-5.4.0-release-posix-sjlj-rt_v5-rev0.7z",
-            "54_x86_64_seh_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.4.0/threads-win32/seh/x86_64-5.4.0-release-win32-seh-rt_v5-rev0.7z",
-            "54_x86_64_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/5.4.0/threads-win32/sjlj/x86_64-5.4.0-release-win32-sjlj-rt_v5-rev0.7z",
-
-
-            ############################################################################################################
-            ###  6.2
-            ############################################################################################################
-            "62_x86_dwarf2_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.2.0/threads-posix/dwarf/i686-6.2.0-release-posix-dwarf-rt_v5-rev1.7z",
-            "62_x86_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.2.0/threads-posix/sjlj/i686-6.2.0-release-posix-sjlj-rt_v5-rev1.7z",
-            "62_x86_dwarf2_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.2.0/threads-win32/dwarf/i686-6.2.0-release-win32-dwarf-rt_v5-rev1.7z",
-            "62_x86_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.2.0/threads-win32/sjlj/i686-6.2.0-release-win32-sjlj-rt_v5-rev1.7z",
-
-            "62_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.2.0/threads-posix/seh/x86_64-6.2.0-release-posix-seh-rt_v5-rev1.7z",
-            "62_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.2.0/threads-posix/sjlj/x86_64-6.2.0-release-posix-sjlj-rt_v5-rev1.7z",
-            "62_x86_64_seh_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.2.0/threads-win32/seh/x86_64-6.2.0-release-win32-seh-rt_v5-rev1.7z",
-            "62_x86_64_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.2.0/threads-win32/sjlj/x86_64-6.2.0-release-win32-sjlj-rt_v5-rev1.7z",
-
-
-            ############################################################################################################
-            ###  6.3
-            ############################################################################################################
-            "63_x86_dwarf2_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.3.0/threads-posix/dwarf/i686-6.3.0-release-posix-dwarf-rt_v5-rev1.7z",
-            "63_x86_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.3.0/threads-posix/sjlj/i686-6.3.0-release-posix-sjlj-rt_v5-rev1.7z",
-            "63_x86_dwarf2_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.3.0/threads-win32/dwarf/i686-6.3.0-release-win32-dwarf-rt_v5-rev1.7z",
-            "63_x86_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/6.3.0/threads-win32/sjlj/i686-6.3.0-release-win32-sjlj-rt_v5-rev1.7z",
-
-            "63_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.3.0/threads-posix/seh/x86_64-6.3.0-release-posix-seh-rt_v5-rev1.7z",
-            "63_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.3.0/threads-posix/sjlj/x86_64-6.3.0-release-posix-sjlj-rt_v5-rev1.7z",
-            "63_x86_64_seh_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.3.0/threads-win32/seh/x86_64-6.3.0-release-win32-seh-rt_v5-rev1.7z",
-            "63_x86_64_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/6.3.0/threads-win32/sjlj/x86_64-6.3.0-release-win32-sjlj-rt_v5-rev1.7z",
-
-
-            ############################################################################################################
-            ###  7.1
-            ############################################################################################################
-            "71_x86_dwarf2_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/7.1.0/threads-posix/dwarf/i686-7.1.0-release-posix-dwarf-rt_v5-rev1.7z",
-            "71_x86_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/7.1.0/threads-posix/sjlj/i686-7.1.0-release-posix-sjlj-rt_v5-rev1.7z",
-            "71_x86_dwarf2_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/7.1.0/threads-win32/dwarf/i686-7.1.0-release-win32-dwarf-rt_v5-rev1.7z",
-            "71_x86_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/7.1.0/threads-win32/sjlj/i686-7.1.0-release-win32-sjlj-rt_v5-rev1.7z",
-
-            "71_x86_64_seh_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.1.0/threads-posix/seh/x86_64-7.1.0-release-posix-seh-rt_v5-rev1.7z",
-            "71_x86_64_sjlj_posix": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.1.0/threads-posix/sjlj/x86_64-7.1.0-release-posix-sjlj-rt_v5-rev1.7z",
-            "71_x86_64_seh_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.1.0/threads-win32/seh/x86_64-7.1.0-release-win32-seh-rt_v5-rev1.7z",
-            "71_x86_64_sjlj_win32": "http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.1.0/threads-win32/sjlj/x86_64-7.1.0-release-win32-sjlj-rt_v5-rev1.7z",
-        }
-
-        tools.download(files[keychain], "file.7z")
+        self.output.info("Downloading: %s" % installer.url)
+        tools.download(installer.url, "file.7z")
         self.run("7z x file.7z")
-    
+        os.remove('file.7z')
+
     def package(self):
         self.copy("*", dst="", src="mingw32")
         self.copy("*", dst="", src="mingw64")
+        shutil.rmtree('mingw32', True)
+        shutil.rmtree('mingw64', True)
 
     def package_info(self):
         self.env_info.path.append(os.path.join(self.package_folder, "bin"))
-        self.env_info.CXX = os.path.join(self.package_folder, "bin", "g++.exe")
-        self.env_info.CC = os.path.join(self.package_folder, "bin", "gcc.exe")
+        self.env_info.MINGW_HOME = str(self.package_folder)
+        self.env_info.CONAN_CMAKE_GENERATOR = "MinGW Makefiles"
+        self.env_info.CXX = os.path.join(self.package_folder, "bin", "g++.exe").replace("\\", "/")
+        self.env_info.CC = os.path.join(self.package_folder, "bin", "gcc.exe").replace("\\", "/")
+
+
+class Installer(namedtuple("Installer", "version arch threads exception revision url")):
+
+    def __new__(cls, raw_data):
+        version, arch, threads, exception, revision, url = [x.strip() for x in raw_data.split('|')]
+        version = Version(version)
+        revision = int(revision[3:])
+        return cls.__bases__[0].__new__(cls, version, arch, threads, exception, revision, url)
+
+
+repository_file = 'https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/' \
+                      'Personal%20Builds/mingw-builds/installer/repository.txt/download'
+
+
+def get_best_installer(arch, threads, exception, version):
+
+    if arch == "x86":
+        arch = "i686"
+        
+    if exception == "dwarf2":
+        exception = "dwarf"
+
+    tools.download(repository_file, "repository.txt", overwrite=True, retry=10)
+
+    installers = []
+    with open("repository.txt") as f:
+        for line in f.readlines():
+            installers.append(Installer(line))
+
+    version = Version(version)
+    def params_match(i):
+        return arch == i.arch and threads == i.threads and exception == i.exception
+
+    def better_choice(i):
+        return not best_match or i.version > best_match.version or (i.version == best_match.version and i.revision > best_match.revision)
+
+    best_match = None
+    for i in installers:
+        if len(version.as_list) == 1:
+            if i.version.major() == version.major() and params_match(i) and better_choice(i):
+                best_match = i
+        elif len(version.as_list) == 2:
+            if i.version.major() == version.major() and i.version.minor() == version.minor() and params_match(i) and better_choice(i):
+                best_match = i
+        elif len(version.as_list) == 3:
+            if i.version == version and params_match(i) and better_choice(i):
+                best_match = i
+
+    if not best_match:
+        raise Exception("There is no suitable MinGW release for the requested features %s %s %s %s" % (arch, threads, exception, version))
+    else:
+        return best_match
+
+if __name__ == "__main__":
+
+    installer = get_best_installer("x86", "posix", "sjlj", "4")
+    assert(installer.version == "4.9.4")
+
+    installer = get_best_installer("x86", "posix", "sjlj", "4.9")
+    assert (installer.version == "4.9.4")
+
+    installer = get_best_installer("x86", "posix", "sjlj", "4.9.3")
+    assert (installer.version == "4.9.3")
+
+    installer = get_best_installer("x86", "posix", "sjlj", "5")
+    assert (installer.version == "5.4.0")
+
+    installer = get_best_installer("x86", "posix", "sjlj", "5.4")
+    assert (installer.version == "5.4.0")
+
+    installer = get_best_installer("x86", "posix", "sjlj", "5.4.0")
+    assert (installer.version == "5.4.0")
+
+    installer = get_best_installer("x86", "posix", "sjlj", "5.2.0")
+    assert (installer.version == "5.2.0")
+    assert (installer.revision == 1)
+    
+    installer = get_best_installer("x86_64", "posix", "seh", "4.9")
+    assert (installer.version == "4.9.4")
+    assert (installer.revision == 0)
+    
+    installer = get_best_installer("x86_64", "posix", "sjlj", "4.9")
+    assert (installer.version == "4.9.4")
+    assert (installer.revision == 0)
+    
+    installer = get_best_installer("x86", "posix", "sjlj", "4.9")
+    assert (installer.version == "4.9.4")
+    assert (installer.revision == 0)
+    
+    installer = get_best_installer("x86", "posix", "dwarf2", "4.9")
+    assert (installer.version == "4.9.4")
+    assert (installer.revision == 0)
+    
+    installer = get_best_installer("x86_64", "posix", "seh", "6.3")
+    assert (installer.version == "6.3.0")
+    assert (installer.revision == 2)
+    
+    installer = get_best_installer("x86_64", "posix", "seh", "7.1")
+    assert (installer.version == "7.1.0")
+    assert (installer.revision == 2)
+    

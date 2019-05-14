@@ -1,14 +1,20 @@
-import os
-import StringIO
-from conans import ConanFile
+try:
+    import StringIO
+except ImportError:
+    import io as StringIO
+from conans import ConanFile, __version__ as conan_version
+from conans.model.version import Version
+
 
 class MinGWTestConan(ConanFile):
     
     generators = "gcc"
-    settings = {"os", "arch", "compiler"}
+
+    settings = "os", "arch", "compiler"
 
     def build(self):
-        self.run('gcc %s/main.cpp @conanbuildinfo.gcc -lstdc++ -o main' % self.conanfile_directory)
+        self.output.info("arch:%s" % self.settings.arch)
+        self.run('gcc %s/main.cpp @conanbuildinfo.gcc -lstdc++ -o main' % self.source_folder)
 
     def test(self):
         self.run("main")
